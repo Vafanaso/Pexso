@@ -176,7 +176,7 @@ int main() {
       sf::Font font;
       font.loadFromFile("Roboto-Black.ttf");
       sf::Text winText("You Win!", font, 48);
-      winText.setFillColor(sf::Color::Green);
+      winText.setFillColor(sf::Color::Blue);
       winText.setPosition(180, 250);
       window.draw(winText);
     }
