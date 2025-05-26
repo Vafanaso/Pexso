@@ -22,12 +22,9 @@ public:
     shape.setOutlineColor(sf::Color::White);
   }
 
-  void draw(sf::RenderWindow &window) {
+  void draw(sf::RenderWindow &window, const sf::Font &font) {
     window.draw(shape);
     if (isFlipped || isMatched) {
-      sf::Font font;
-      if (!font.loadFromFile("Roboto-Black.ttf"))
-        throw std::runtime_error("Font not found");
       sf::Text text(std::to_string(value), font, 32);
       text.setFillColor(sf::Color::Black);
       text.setPosition(shape.getPosition().x + 35, shape.getPosition().y + 30);
@@ -64,8 +61,18 @@ private:
   bool waiting = false;
   sf::Clock flipClock;
 
+  // ✅ New score-related variables:
+  int attempts = 0;
+  int matches = 0;
+  sf::Font font; // load only once
+
 public:
   Game() {
+    // Load font
+    if (!font.loadFromFile("Roboto-Black.ttf"))
+      throw std::runtime_error("Font not found");
+
+    // Prepare values
     std::vector<int> values;
     for (int i = 1; i <= 8; ++i) {
       values.push_back(i);
@@ -76,14 +83,10 @@ public:
                  std::default_random_engine(static_cast<unsigned>(time(0))));
 
     int index = 0;
-    for (int y = 0; y < 2; ++y) {
+    for (int y = 0; y < 4; ++y) {
       for (int x = 0; x < 4; ++x) {
-        cards.emplace_back(120 * x + 50, 120 * y + 50, values[index++]);
-      }
-    }
-    for (int y = 2; y < 4; ++y) {
-      for (int x = 0; x < 4; ++x) {
-        cards.emplace_back(120 * x + 50, 120 * y + 50, values[index++]);
+        cards.emplace_back(120 * x + 50, 120 * y + 100,
+                           values[index++]); // moved down 100px
       }
     }
   }
@@ -93,9 +96,12 @@ public:
       return;
 
     if (waiting) {
+      attempts++; // Count the attempt
+
       if (*firstCard == *secondCard) {
         firstCard->setMatched();
         secondCard->setMatched();
+        matches++; // Count successful match
       } else {
         firstCard->flip();
         secondCard->flip();
@@ -120,8 +126,16 @@ public:
   }
 
   void draw(sf::RenderWindow &window) {
+    // Draw score info
+    sf::Text scoreText("Attempts: " + std::to_string(attempts) +
+                           " | Matches: " + std::to_string(matches),
+                       font, 24);
+    scoreText.setFillColor(sf::Color::White);
+    scoreText.setPosition(10, 10);
+    window.draw(scoreText);
+
     for (auto &card : cards) {
-      card.draw(window);
+      card.draw(window, font); // Pass font to Card
     }
   }
 
